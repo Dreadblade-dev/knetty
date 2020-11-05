@@ -1,18 +1,20 @@
 package com.dreadblade.knetty.network.http.response;
 
 public enum Status {
-    OK("OK", 200),
-    FORBIDDEN("Forbidden", 403),
-    NOT_FOUND("Not found", 404),
-    INTERNAL_SERVER_ERROR("Internal server error", 500);
+    OK("OK", 200, "index.html"),
+    BAD_REQUEST("Bad request", 400, ""),
+    NOT_FOUND("Not found", 404, "not_found_404.html"),
+    INTERNAL_SERVER_ERROR("Internal server error", 500, "");
 
 
-    private String description;
+    private String message;
     private int code;
+    private String defaultPageFilename;
 
-    Status(String description, int code) {
-        this.description = description;
+    Status(String message, int code, String defaultPageFilename) {
+        this.message = message;
         this.code = code;
+        this.defaultPageFilename = defaultPageFilename;
     }
 
     public int getStatusCode() {
@@ -20,6 +22,10 @@ public enum Status {
     }
 
     public String getStatusMessage() {
-        return this.description;
+        return this.message;
+    }
+
+    public String getDefaultPageFilename() {
+        return defaultPageFilename;
     }
 }

@@ -1,27 +1,36 @@
 package com.dreadblade.knetty.config;
 
-import com.dreadblade.knetty.util.ConfigurationException;
+import com.dreadblade.knetty.exception.ConfigurationException;
 import com.dreadblade.knetty.util.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Configuration {
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
-    private static Configuration instance;
     private static final int DEFAULT_PORT = 8080;
     private static final String DEFAULT_ROOT_PATH = "/";
+    private static final String DEFAULT_STATIC_FILES_LOCATION = "./src/main/resources/static/";
+
+    private static Configuration instance;
     private int port;
     private String rootPath;
+    private String staticFilesLocation;
 
     private Configuration() {
-        try {
-            port = ConfigurationLoader.getPort();
-            rootPath = ConfigurationLoader.getRootPath();
-        } catch (ConfigurationException e) {
-            logger.warn("Cannot load port and rootPath. Using default values: "
-                    + DEFAULT_PORT + " and " + DEFAULT_ROOT_PATH);
-            port = DEFAULT_PORT;
+        rootPath = ConfigurationLoader.getPropertyValue("rootPath");
+        staticFilesLocation = ConfigurationLoader.getPropertyValue("staticFilesLocation");
+
+        if (rootPath == null) {
             rootPath = DEFAULT_ROOT_PATH;
+        }
+        if (staticFilesLocation == null) {
+            staticFilesLocation = DEFAULT_STATIC_FILES_LOCATION;
+        }
+
+        try {
+            port = Integer.parseInt(ConfigurationLoader.getPropertyValue("port"));
+        } catch (NumberFormatException e) {
+            port = DEFAULT_PORT;
         }
     }
 
@@ -38,5 +47,9 @@ public class Configuration {
 
     public String getRootPath() {
         return rootPath;
+    }
+
+    public String getStaticFilesLocation() {
+        return staticFilesLocation;
     }
 }

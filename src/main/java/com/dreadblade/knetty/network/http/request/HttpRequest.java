@@ -41,8 +41,8 @@ public class HttpRequest {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (Header header : headers) {
-            sb.append(header);
             sb.append('\n');
+            sb.append(header);
         }
         return method.name() + " " + path + " " + version + sb.toString();
     }
