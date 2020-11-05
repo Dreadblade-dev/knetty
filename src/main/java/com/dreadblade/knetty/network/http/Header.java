@@ -18,7 +18,7 @@ public class Header {
             this.name = splitHeader[0];
             this.value = splitHeader[1];
         } else {
-            logger.error("Illegal header!");
+            logger.error("Illegal header argument!");
             throw new IllegalArgumentException();
         }
     }
@@ -46,10 +46,6 @@ public class Header {
 
     @Override
     public String toString() {
-        if (value == null || value.isEmpty()) {
-            return name;
-        } else {
-            return name + ": " + value;
-        }
+        return name + ": " + value;
     }
 }

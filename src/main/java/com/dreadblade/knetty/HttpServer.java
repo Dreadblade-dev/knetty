@@ -1,11 +1,11 @@
 package com.dreadblade.knetty;
 
-import com.dreadblade.knetty.network.http.Header;
+import com.dreadblade.knetty.config.Configuration;
 import com.dreadblade.knetty.network.http.request.HttpRequest;
-import com.dreadblade.knetty.network.http.request.Method;
 import com.dreadblade.knetty.network.http.response.HttpResponse;
 import com.dreadblade.knetty.network.http.response.HttpResponseBuilder;
 import com.dreadblade.knetty.network.http.response.Status;
+import com.dreadblade.knetty.util.ParseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +14,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -30,20 +28,17 @@ public class HttpServer {
     public void bootstrap() {
         try {
             server = AsynchronousServerSocketChannel.open();
-            server.bind(new InetSocketAddress("127.0.0.1", 8080));
+            server.bind(new InetSocketAddress("127.0.0.1", Configuration.getInstance().getPort()));
+
+            logger.info("Server started!");
 
             while (true) {
                 Future<AsynchronousSocketChannel> future = server.accept();
                 handleClient(future);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException();
         }
     }
 
@@ -72,20 +67,7 @@ public class HttpServer {
                 buffer.clear();
             }
 
-            String[] requestData = builder.toString().split("\r\\n");
-            String[] requestFirstLine = requestData[0].split("\\s");
-            Method method = Method.getMethod(requestFirstLine[0]);
-            String path = requestFirstLine[1];
-            String version = requestFirstLine[2];
-            List<Header> headers = new ArrayList<>();
-            for (int i = 1; i < requestData.length; i++) {
-                Header header = new Header();
-                String[] splitRequest = requestData[i].split(": ");
-                header.setName(splitRequest[0]);
-                header.setValue(splitRequest[1]);
-                headers.add(header);
-            }
-            HttpRequest request = new HttpRequest(method, path, version, headers);
+            HttpRequest request = ParseUtils.parseRequest(builder.toString());
             logger.debug(request.toString());
 
             String body = "<!DOCTYPE html>" +

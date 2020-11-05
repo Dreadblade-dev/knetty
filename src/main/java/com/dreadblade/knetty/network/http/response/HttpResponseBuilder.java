@@ -5,9 +5,13 @@ import com.dreadblade.knetty.network.http.Header;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A class for easily creating an object implementing HttpResponse interface
+ */
 public class HttpResponseBuilder {
 
     private Response response;
+    private static final String NEW_LINE = "\r\n";
 
     public HttpResponseBuilder() {
         response = new Response();
@@ -106,10 +110,10 @@ public class HttpResponseBuilder {
             StringBuilder sb = new StringBuilder();
             for (Header header : headers) {
                 sb.append(header);
-                sb.append('\n');
+                sb.append(NEW_LINE);
             }
             return version + " " + status.getStatusCode() + " " + status.getStatusMessage() +
-                    '\n' + sb.toString() + "\n\n" + body;
+                    NEW_LINE + sb.toString() + "\n\n" + body;
         }
 
         public void addHeader(Header header) {

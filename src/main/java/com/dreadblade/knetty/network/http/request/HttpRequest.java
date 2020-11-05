@@ -4,6 +4,10 @@ import com.dreadblade.knetty.network.http.Header;
 
 import java.util.List;
 
+/**
+ * HttpRequest class represents a HTTP request
+ * https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
+ */
 public class HttpRequest {
     private final Method method;
     private final String path;
