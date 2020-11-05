@@ -1,5 +1,11 @@
 package com.dreadblade.knetty;
 
+import com.dreadblade.knetty.network.http.Header;
+import com.dreadblade.knetty.network.http.request.HttpRequest;
+import com.dreadblade.knetty.network.http.request.Method;
+import com.dreadblade.knetty.network.http.response.HttpResponse;
+import com.dreadblade.knetty.network.http.response.HttpResponseBuilder;
+import com.dreadblade.knetty.network.http.response.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +14,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -18,13 +26,6 @@ public class HttpServer {
     private final Logger logger = LoggerFactory.getLogger(HttpServer.class);
     private final static int BUFFER_SIZE = 256;
     private AsynchronousServerSocketChannel server;
-
-    private final static String HEADERS =
-            "HTTP/1.1 200 OK\n" +
-                    "Server: knetty-1.0-SHAPSHOT\n" +
-                    "Content-Type: text/html\n" +
-                    "Content-Length: %s\n" +
-                    "Connection: close\n\n";
 
     public void bootstrap() {
         try {
@@ -71,9 +72,42 @@ public class HttpServer {
                 buffer.clear();
             }
 
-            String body = "<html><body><h1>Hello, knetty!</h1></body></html>";
-            String page = String.format(HEADERS, body.length()) + body;
-            ByteBuffer resp = ByteBuffer.wrap(page.getBytes());
+            String[] requestData = builder.toString().split("\r\\n");
+            String[] requestFirstLine = requestData[0].split("\\s");
+            Method method = Method.getMethod(requestFirstLine[0]);
+            String path = requestFirstLine[1];
+            String version = requestFirstLine[2];
+            List<Header> headers = new ArrayList<>();
+            for (int i = 1; i < requestData.length; i++) {
+                Header header = new Header();
+                String[] splitRequest = requestData[i].split(": ");
+                header.setName(splitRequest[0]);
+                header.setValue(splitRequest[1]);
+                headers.add(header);
+            }
+            HttpRequest request = new HttpRequest(method, path, version, headers);
+            logger.debug(request.toString());
+
+            String body = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<title>Sample page</title>" +
+                    "</head>" +
+                    "<body>" +
+                    "<h1>Hello, knetty!</h1>" +
+                    "</body>" +
+                    "</html>";
+
+            HttpResponse response = new HttpResponseBuilder()
+                    .setVersion("HTTP/1.1")
+                    .setStatus(Status.OK)
+                    .addHeader("Content-Type: text/html")
+                    .addHeader("Content-length: " + body.length())
+                    .addBody(body)
+                    .create();
+
+            logger.debug(response.toString());
+            ByteBuffer resp = ByteBuffer.wrap(response.getBytes());
             clientChannel.write(resp);
 
             clientChannel.close();
