@@ -1,7 +1,8 @@
 package com.dreadblade.knetty;
 
 import com.dreadblade.knetty.config.Configuration;
-import com.dreadblade.knetty.exception.StaticFileNotFoundException;
+import com.dreadblade.knetty.exception.StaticFileLoadException;
+import com.dreadblade.knetty.network.http.request.HttpRequestHandler;
 import com.dreadblade.knetty.network.http.request.HttpRequest;
 import com.dreadblade.knetty.exception.InvalidHttpRequestException;
 import com.dreadblade.knetty.network.http.response.HttpResponse;
@@ -15,21 +16,23 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class HttpServer {
+public class HttpServer implements HttpRequestHandler {
     private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
     private static final int BUFFER_SIZE = 256;
     private static Configuration config;
     private AsynchronousServerSocketChannel server;
 
     public void bootstrap() {
+
         try {
             config = Configuration.getInstance();
             server = AsynchronousServerSocketChannel.open();
@@ -42,13 +45,14 @@ public class HttpServer {
                 handleClient(future);
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
-            throw new RuntimeException();
+            logger.error(e.getClass().getName());
         }
+
+        logger.info("Server stopped!");
     }
 
     private void handleClient(Future<AsynchronousSocketChannel> future)
-            throws InterruptedException, ExecutionException, TimeoutException, IOException {
+            throws InterruptedException, ExecutionException, TimeoutException {
         logger.info("Incoming connection");
 
         AsynchronousSocketChannel clientChannel = future.get(30, TimeUnit.SECONDS);
@@ -59,70 +63,71 @@ public class HttpServer {
             boolean keepReading = true;
 
             while (keepReading) {
-                clientChannel.read(buffer).get();
+                int readResult = clientChannel.read(buffer).get();
 
-                int position = buffer.position();
-                keepReading = position == BUFFER_SIZE;
+                keepReading = readResult == BUFFER_SIZE;
+                buffer.flip();
+                CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer);
+                builder.append(charBuffer);
 
-                byte[] array = keepReading
-                        ? buffer.array()
-                        : Arrays.copyOfRange(buffer.array(), 0, position);
-
-                builder.append(new String(array));
                 buffer.clear();
             }
 
+            logger.debug(builder.toString());
             HttpRequest request = null;
             try {
                 request = ParseUtils.parseRequest(builder.toString());
+                logger.debug(request.toString());
             } catch (InvalidHttpRequestException e) {
-                e.printStackTrace();
+                logger.info(e.getMessage());
             }
-            logger.debug(request.toString());
 
-            sendResponse(clientChannel, request);
+            HttpResponse response = handle(request);
+            sendResponse(clientChannel, response);
         }
     }
 
-    private void sendResponse(AsynchronousSocketChannel clientChannel, HttpRequest request) {
+    @Override
+    public HttpResponse handle(HttpRequest request) {
         HttpResponse response = null;
         String body;
         String staticFilesLocation = config.getStaticFilesLocation();
         String filepath = staticFilesLocation;
+
         if (request != null) {
-            if (request.getPath().equals(config.getRootPath())) {
-                filepath += "index.html";
-            } else {
-                filepath += request.getPath();
-            }
-
-            try {
-                body = StaticFilesLoader.loadStaticFile(filepath);
-                response = createResponse(Status.OK, body);
-            } catch (StaticFileNotFoundException e) {
-                logger.info("Not found 404: " + e.getMessage());
-                try {
-                    body = StaticFilesLoader.loadStaticFile(staticFilesLocation + "not_found_404.html");
-                    response = createResponse(Status.NOT_FOUND, body);
-                } catch (StaticFileNotFoundException exc) {
-                    logger.error(exc.getMessage());
+            if (request.getMethod() != null && request.getPath() != null && request.getVersion() != null) {
+                if (request.getPath().equals(config.getRootPath())) {
+                    filepath += "index.html";
+                } else {
+                    filepath += request.getPath();
                 }
+
+                try {
+                    body = StaticFilesLoader.loadStaticFile(filepath);
+                    response = createResponse(Status.OK, body);
+                } catch (StaticFileLoadException e) {
+                    logger.info("Not found 404: " + e.getMessage() + " on path + " + request.getPath());
+                    try {
+                        body = StaticFilesLoader.loadStaticFile(staticFilesLocation + "not_found_404.html");
+                        response = createResponse(Status.NOT_FOUND, body);
+                    } catch (StaticFileLoadException exc) {
+                        logger.error(exc.getMessage());
+                    }
+                }
+                logger.debug(response.toString());
             }
-
-        }
-        logger.debug(response.toString());
-
-        ByteBuffer resp = ByteBuffer.wrap(response.getBytes());
-
-
-        if (clientChannel.isOpen()) {
+        } else {
             try {
-                clientChannel.write(resp);
-                clientChannel.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage());
+                filepath += Status.BAD_REQUEST.getDefaultPageFilename();
+                body = StaticFilesLoader.loadStaticFile(filepath);
+                response = createResponse(Status.BAD_REQUEST, body);
+            } catch (StaticFileLoadException e) {
+                e.printStackTrace();
             }
         }
+
+
+        return response;
     }
 
     public HttpResponse createResponse(Status status, String body) {
@@ -133,5 +138,17 @@ public class HttpServer {
                 .addHeader("Content-length: " + body.length())
                 .addBody(body)
                 .create();
+    }
+
+    private void sendResponse(AsynchronousSocketChannel clientChannel, HttpResponse response) {
+        if (clientChannel.isOpen()) {
+            try {
+                ByteBuffer resp = ByteBuffer.wrap(response.getBytes());
+                clientChannel.write(resp);
+                clientChannel.close();
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+            }
+        }
     }
 }

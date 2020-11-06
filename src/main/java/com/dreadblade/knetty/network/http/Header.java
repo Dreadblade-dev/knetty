@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public class Header {
     private static final Logger logger = LoggerFactory.getLogger(Header.class);
+    private static final String HEADER_DELIMITER = ": ";
 
     private String name;
     private String value;
@@ -13,10 +14,10 @@ public class Header {
     }
 
     public Header(String header) {
-        String[] splitHeader = header.split(": ");
-        if (splitHeader.length == 2) {
-            this.name = splitHeader[0];
-            this.value = splitHeader[1];
+        String[] headerParts = header.split(HEADER_DELIMITER);
+        if (headerParts.length == 2) {
+            this.name = headerParts[0].trim();
+            this.value = headerParts[1].trim();
         } else {
             logger.error("Illegal header argument!");
             throw new IllegalArgumentException();

@@ -1,15 +1,18 @@
 package com.dreadblade.knetty.util;
 
-import com.dreadblade.knetty.exception.StaticFileNotFoundException;
+import com.dreadblade.knetty.exception.StaticFileLoadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class StaticFilesLoader {
     private static final Logger logger = LoggerFactory.getLogger(StaticFilesLoader.class);
 
-    public static String loadStaticFile(String filename) throws StaticFileNotFoundException {
+    public static String loadStaticFile(String filename) throws StaticFileLoadException {
         StringBuilder fileContent = new StringBuilder();
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
@@ -20,11 +23,8 @@ public class StaticFilesLoader {
                 temp = reader.readLine();
             }
 
-        } catch (FileNotFoundException e) {
-            logger.info("Static file not found!");
-            throw new StaticFileNotFoundException();
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            throw new StaticFileLoadException(e.getMessage());
         }
         return fileContent.toString();
     }

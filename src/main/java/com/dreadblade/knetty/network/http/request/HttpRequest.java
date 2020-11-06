@@ -2,6 +2,7 @@ package com.dreadblade.knetty.network.http.request;
 
 import com.dreadblade.knetty.network.http.Header;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ public class HttpRequest {
         this.method = method;
         this.path = path;
         this.version = version;
-        this.headers = headers;
+        this.headers = Collections.unmodifiableList(headers);
     }
 
     public Method getMethod() {
