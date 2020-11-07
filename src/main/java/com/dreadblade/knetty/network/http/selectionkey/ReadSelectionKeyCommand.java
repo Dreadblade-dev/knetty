@@ -1,4 +1,4 @@
-package com.dreadblade.knetty.network.selectionkey;
+package com.dreadblade.knetty.network.http.selectionkey;
 
 import com.dreadblade.knetty.exception.InvalidHttpRequestException;
 import com.dreadblade.knetty.network.http.request.HttpRequest;

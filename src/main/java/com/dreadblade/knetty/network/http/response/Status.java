@@ -4,7 +4,7 @@ public enum Status {
     OK("OK", 200, "index.html"),
     BAD_REQUEST("Bad request", 400, "bad_request_400.html"),
     NOT_FOUND("Not found", 404, "not_found_404.html"),
-    INTERNAL_SERVER_ERROR("Internal server error", 500, "");
+    INTERNAL_SERVER_ERROR("Internal server error", 500, "internal_server_error_500.html");
 
 
     private String message;

@@ -1,0 +1,16 @@
+{
+  "books": [
+    {
+      "title": "The Little Prince",
+      "author": "Antoine de Saint-Exupéry"
+    },
+    {
+      "title": "The Captain's Daughter",
+      "author": "Alexander Pushkin"
+    },
+    {
+      "title": "War and Peace",
+      "author": "Leo Tolstoy"
+    }
+  ]
+}

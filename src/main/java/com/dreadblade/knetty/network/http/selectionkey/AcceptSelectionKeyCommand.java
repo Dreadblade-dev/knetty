@@ -1,4 +1,4 @@
-package com.dreadblade.knetty.network.selectionkey;
+package com.dreadblade.knetty.network.http.selectionkey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

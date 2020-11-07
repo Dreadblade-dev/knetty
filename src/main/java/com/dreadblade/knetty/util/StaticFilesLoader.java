@@ -2,24 +2,20 @@ package com.dreadblade.knetty.util;
 
 import com.dreadblade.knetty.exception.StaticFileLoadException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class StaticFilesLoader {
     public static String loadStaticFile(String filename) throws StaticFileLoadException {
-        StringBuilder fileContent = new StringBuilder();
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
-            String temp = reader.readLine();
+        try (InputStream inputStream = new FileInputStream(filename)) {
 
-            while (temp != null) {
-                fileContent.append(temp);
-                temp = reader.readLine();
-            }
-
+            byte[] fileData = inputStream.readAllBytes();
+            return new String(fileData);
         } catch (IOException e) {
             throw new StaticFileLoadException(e.getMessage());
         }
-        return fileContent.toString();
     }
 
     public static boolean isFileExists(String filename) {

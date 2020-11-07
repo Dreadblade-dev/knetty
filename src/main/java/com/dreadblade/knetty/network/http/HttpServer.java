@@ -4,8 +4,8 @@ import com.dreadblade.knetty.config.Configuration;
 import com.dreadblade.knetty.exception.InvalidSelectionKeyCommandException;
 import com.dreadblade.knetty.network.Server;
 import com.dreadblade.knetty.network.http.request.HttpRequestHandler;
-import com.dreadblade.knetty.network.selectionkey.SelectionKeyCommand;
-import com.dreadblade.knetty.network.selectionkey.SelectionKeyCommandFactory;
+import com.dreadblade.knetty.network.http.selectionkey.SelectionKeyCommand;
+import com.dreadblade.knetty.network.http.selectionkey.SelectionKeyCommandFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,11 +90,14 @@ public class HttpServer implements Server, HttpRequestHandler {
 
     @Override
     public void stop() {
+        System.out.println("Knetty server is stopping...");
         try {
             selector.close();
             serverSocketChannel.close();
         } catch (IOException e) {
             logger.error(e.getClass().getName());
         }
+        System.out.println("Knetty server was stopped!");
+
     }
 }

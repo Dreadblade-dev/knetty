@@ -15,7 +15,7 @@ public class ParseUtils {
         String[] requestFirstLine = requestData[0].split("\\s");
 
         if (requestData.length <= 1) {
-            throw new InvalidHttpRequestException("Invalid HTTP request");
+            throw new InvalidHttpRequestException("Invalid HTTP request: bad request");
         }
 
         Method method = Method.getMethod(requestFirstLine[0]);
@@ -29,7 +29,7 @@ public class ParseUtils {
         }
 
         if (headers.size() == 0) {
-            throw new InvalidHttpRequestException("Invalid HTTP request headers");
+            throw new InvalidHttpRequestException("Invalid HTTP request headers: bad request");
         }
 
         return new HttpRequest(method, path, version, headers);
