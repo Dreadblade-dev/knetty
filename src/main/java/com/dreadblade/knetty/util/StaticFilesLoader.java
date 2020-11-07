@@ -1,17 +1,10 @@
 package com.dreadblade.knetty.util;
 
 import com.dreadblade.knetty.exception.StaticFileLoadException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public class StaticFilesLoader {
-    private static final Logger logger = LoggerFactory.getLogger(StaticFilesLoader.class);
-
     public static String loadStaticFile(String filename) throws StaticFileLoadException {
         StringBuilder fileContent = new StringBuilder();
         try {
@@ -29,4 +22,7 @@ public class StaticFilesLoader {
         return fileContent.toString();
     }
 
+    public static boolean isFileExists(String filename) {
+        return new File(filename).exists();
+    }
 }

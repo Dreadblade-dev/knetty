@@ -15,6 +15,11 @@ public interface HttpResponse {
     void setStatus(Status status);
     List<Header> getHeaders();
     void setHeaders(List<Header> headers);
+    void addHeader(Header header);
+    void addHeader(String header);
+    void addHeader(String name, String value);
+    void addHeaders(List<Header> headers);
+    void addBody(String body);
 
     byte[] getBytes();
 }

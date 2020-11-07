@@ -10,62 +10,62 @@ import java.util.List;
  */
 public class HttpResponseBuilder {
 
-    private Response response;
+    private HttpResponseImpl httpResponseImpl;
     private static final String NEW_LINE = "\r\n";
 
     public HttpResponseBuilder() {
-        response = new Response();
-        response.addHeader("Server: knetty-1.0-SHAPSHOT");
-        response.addHeader("Connection: close");
+        httpResponseImpl = new HttpResponseImpl();
+        httpResponseImpl.addHeader("Server: knetty-1.0-SHAPSHOT");
+        httpResponseImpl.addHeader("Connection: close");
     }
 
     public HttpResponseBuilder setVersion(String version) {
-        response.setVersion(version);
+        httpResponseImpl.setVersion(version);
         return this;
     }
 
     public HttpResponseBuilder setStatus(Status status) {
-        response.setStatus(status);
+        httpResponseImpl.setStatus(status);
         return this;
     }
 
     public HttpResponseBuilder addHeader(Header header) {
-        response.headers.add(header);
+        httpResponseImpl.headers.add(header);
         return this;
     }
 
     public HttpResponseBuilder addHeader(String header) {
-        response.headers.add(new Header(header));
+        httpResponseImpl.headers.add(new Header(header));
         return this;
     }
 
     public HttpResponseBuilder addHeader(String name, String value) {
-        response.headers.add(new Header(name, value));
+        httpResponseImpl.headers.add(new Header(name, value));
         return this;
     }
 
     public HttpResponseBuilder addHeaders(List<Header> headers) {
-        response.headers.addAll(headers);
+        httpResponseImpl.headers.addAll(headers);
         return this;
     }
 
     public HttpResponseBuilder addBody(String body) {
-        response.body += body;
+        httpResponseImpl.body += body;
         return this;
     }
 
     public HttpResponse create() {
-        return response;
+        return httpResponseImpl;
     }
 
-    private static class Response implements HttpResponse {
+    private static class HttpResponseImpl implements HttpResponse {
 
         private String version;
         private Status status;
         private List<Header> headers;
         private String body;
 
-        public Response() {
+        public HttpResponseImpl() {
             this.headers = new ArrayList<Header>();
             this.body = "";
         }
